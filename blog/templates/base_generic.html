@@ -1,0 +1,36 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'pico.min.css' %}">
+    {% block css %}{% endblock %}
+    {% block title %}<title>Blogs</title>{% endblock %}
+  </head>
+  <body>
+    <main class="container">
+      {% block sidebar %}<!-- insert default navigation text for every page -->
+      <nav>
+        <ul>
+          <li><strong><a href="{% url 'blog:blogs' %}">Home</a></strong></li>
+        </ul>
+        <ul>
+          {% if user.is_authenticated %}
+          <li>{{ user }}</li>
+          <li><a href="{% url 'accounts:logout' %}" role="button">Logout</a></li>
+          {% else %}
+          <li><a href="{% url 'accounts:register' %}">Register</a></li>
+          <li><a href="{% url 'accounts:login' %}" role="button">Login</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endblock %}
+      {% block content %}<!-- default content text (typically empty) -->{% endblock %}
+    </main>
+    <script type="text/javascript">
+    {% block script %}
+    {% endblock %}
+    </script>
+  </body>
+</html>

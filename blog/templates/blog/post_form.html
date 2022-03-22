@@ -1,0 +1,141 @@
+{% extends "base_generic.html" %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'blog.css' %}">
+{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data">
+    <!-- Security token -->
+    {% csrf_token %}
+    <!-- Using the formset -->
+    {{ form.as_p }}
+    <input type="submit" value="Publish" id="publish">
+    <input type="submit" value="Save as draft" id="draft">
+</form>
+<div id="snackbar">Success!</div>
+{% endblock content %}
+{% block script %}
+function _(e){
+    return document.getElementById(e);
+};
+
+function snack_success(message) {
+    var snackbar = _("snackbar");
+    snackbar.className = "show";
+    setTimeout(function(){ snackbar.className = snackbar.className.replace("show", ""); }, 3000);
+    setTimeout(function(){history.back();}, 3000);
+}
+
+function snack_error(message) {
+    var snackbar = _("snackbar");
+    snackbar.innerHTML = message;
+    snackbar.className = "show";
+    setTimeout(function(){ snackbar.className = snackbar.className.replace("show", ""); }, 3000);
+    setTimeout(function(){history.back();}, 3000);
+}
+
+function getCookie(name){
+    var cookieValue = null;
+
+    if(document.cookie){
+        var cookies = document.cookie.split(';');
+        for(var i = 0; i < cookies.length; i++){
+            cookie = cookies[i].trim();
+            if(cookie.substring(0, name.length + 1) == (name + '=')){
+                cookieValue = decodeURIComponent(cookie.substring(name.length+1));
+                break;
+            };
+        };
+    };
+    return cookieValue;
+};
+
+var btn_draft = _('draft');
+var btn_pub = _('publish');
+
+btn_pub.addEventListener('click', function(e) {
+    e.preventDefault();
+    var title = _('id_title').value;
+    var content = _('id_content').value;
+    var csrfCookie = getCookie('csrftoken');
+
+    const data = new FormData();
+    data.append('title', title);
+    data.append('content', content);
+    data.append('published', true);
+    data.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+    fetch("{% url 'blog:post-create' slug_value=blog.slug %}", {
+        method: 'POST',
+        body: data,
+        credentials: 'same-origin',
+    })
+    .then(response => {
+        console.log('Success:', data);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    }); {
+        headers: {
+            'Accept': 'application/json',
+        },
+        method: 'POST',
+        body: data,
+        credentials: 'same-origin',
+    }).then(async response => {
+        const isJson = response.headers.get('content-type')?.includes('application/json');
+        const data = isJson ? await response.json() : null;
+
+        // check for error response
+        if (!response.ok) {
+            // get error message from body or default to response status
+            const error = (data && data.message) || response.status;
+            return Promise.reject(error);
+        }
+    }).then(datum => {
+        console.log('Success:', datum);
+        snack_success("Successful!");
+    }).catch(error => {
+        console.error('Error:', error);
+        snack_error("Error: " + error);
+    });
+});
+
+btn_draft.addEventListener('click', function(e){
+    e.preventDefault();
+    var title = _('id_title').value;
+    var content = _('id_content').value;
+    var csrfCookie = getCookie('csrftoken');
+
+    const data = new FormData();
+    data.append('title', title);
+    data.append('content', content);
+    data.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+    fetch("{% url 'blog:post-create' slug_value=blog.slug %}",  {
+        headers: {
+            'Accept': 'application/json',
+        },
+        method: 'POST',
+        body: data,
+        credentials: 'same-origin',
+    }).then(async response => {
+        const isJson = response.headers.get('content-type')?.includes('application/json');
+        const data = isJson ? await response.json() : null;
+
+        // check for error response
+        if (!response.ok) {
+            // get error message from body or default to response status
+            const error = (data && data.message) || response.status;
+            return Promise.reject(error);
+        }
+    }).then(datum => {
+        console.log('Success:', datum);
+        snack_success("Successful!");
+    }).catch(error => {
+        console.error('Error:', error);
+        snack_error("Error: " + error);
+    });
+})
+{% endblock %}

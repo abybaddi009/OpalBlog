@@ -1,0 +1,11 @@
+{% extends "base_generic.html" %}
+{% load markdown_extras %}
+
+{% block content %}
+    <h1>{{ post.title }}</h1>
+    <p>Created by: {{ post.created_by }} | Created {{ post.created_at|timesince }} ago</p>
+    {% if user.is_authenticated %}
+        <a href="{% url 'blog:post-update' slug_value=post.slug %}" class="float">Edit</a>
+    {% endif %}
+    <p>{{ post.content | markdown | safe }}</p>
+{% endblock %}
